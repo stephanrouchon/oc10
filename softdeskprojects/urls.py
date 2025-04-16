@@ -16,8 +16,34 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework import routers
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from authentication.views import UserViewset
+from project.views import ProjectViewset, ProjectIssueViewset,CommentViewset, ContributorViewset, UserProjectsAndIssuesView
+
+
+router = routers.SimpleRouter()
+
+router.register('user', UserViewset, basename='user')
+router.register('project', ProjectViewset, basename = 'project' )
+router.register('contributor', ContributorViewset, basename='contributor')
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls'))
-]
+    path('admin', admin.site.urls),
+    path('api-auth/', include('rest_framework.urls')),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/', include(router.urls)),
+    path('api/project/<int:project_pk>/issues',
+         ProjectIssueViewset.as_view({'get': 'list', 'post':'create'}),
+         name='project-issues'),
+    path('api/project/<int:project_pk>/issues/<int:issue_pk>',
+         ProjectIssueViewset.as_view({'get':'retrieve'}),
+         name='project-issue-detail' ),
+    path('api/project/<int:project_pk>/issues/<int:issue_pk>/comments/', 
+         CommentViewset.as_view({'get': 'list', 'post':'create'}),
+         name='project-issue-comments'),
+    path('api/user/project-issues/', UserProjectsAndIssuesView.as_view(), name='user-projects-issues')
+]  

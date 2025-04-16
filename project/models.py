@@ -29,9 +29,11 @@ class Project(models.Model):
     description =models.CharField(max_length=8000, blank=True, null=True)
     created_time = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
-    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)
     project_type =  models.CharField(max_length=20, choices=TypeChoices.choices)
 
+    def __str__(self):
+        return self.name
 
 class Issue(models.Model):
 
@@ -43,14 +45,22 @@ class Issue(models.Model):
     priority = models.CharField(max_length=20, choices=IssuePriorityChoices.choices, blank=True, null=True)
     balise = models.CharField(max_length=20, choices=BaliseChoices.choices, blank=True, null=True)
     status = models.CharField(max_length=20, choices=IssueStatusChoices.choices, default=IssueStatusChoices.TODO)
-    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name="issues")
+    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="issues")
     assignee = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True, related_name="assigned_issues")
 
+    def __str__(self):
+        return self.name
+
     def save(self, *args, **kwargs):
+        """ Valide que l'assignee est un contributeur du projet"""
+        if self.assignee and not Contributor.objects.filter(project=self.project, user=self.assignee).exists():
+            raise ValueError("L'utilisateur assigné doit être un contributeur du projet")
+        
         """Affecte l'auteur du projet par défaut si `assignee` n'est pas défini"""
         if not self.assignee:
             self.assignee = self.project.author
         super().save(*args, **kwargs)
+    
     
 
 class Comment(models.Model):
@@ -59,13 +69,18 @@ class Comment(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
     issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE, related_name='comments')
     id= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='comments')
+    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
     
+    def __str__(self):
+        return self.description
+    
+    def save(self):
+        self.author = self.request.user
 
 class Contributor(models.Model):
 
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE, related_name='contributors')
-    user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='contributions')
+    user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='contributors')
     
     class Meta:
         unique_together = ('project','user')
