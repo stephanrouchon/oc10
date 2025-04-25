@@ -11,6 +11,7 @@ class CommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id','description','created_time','author', 'author_username']
+        read_only_fields = ['id','created_time','author']
 
     def get_author_username(self, obj):
         if obj.author:
@@ -43,6 +44,7 @@ class ContributorSerializer(ModelSerializer):
 
 class IssueSerializer(ModelSerializer):
 
+    project_name = SerializerMethodField()
     assignee_username = SerializerMethodField()
     priority_display = SerializerMethodField()
     balise_display = SerializerMethodField()
@@ -50,16 +52,25 @@ class IssueSerializer(ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ['id',
+    
+        fields = ['project',
+                  'project_name',
+                  'id',
                   'name',
+                  'priority',
                   'priority_display',
+                  'balise',
                   'balise_display',
+                  'status',
                   'status_display',
                   'assignee_username',
                   ]
         
     def get_assignee_username(self, obj):
         return obj.assignee.username
+    
+    def get_project_name(self, obj):
+        return obj.project.name
     
     def get_priority_display(self, obj):
         return obj.get_priority_display()

@@ -88,19 +88,26 @@ class ProjectIssueViewset(ModelViewSet):
         elif self.action == "retrieve":
             permission_classes = [ IsProjectContributor]
         elif self.action in ['update', 'partial_update', 'destroy']:
-            permission_classes == [IsAuthor]
+            permission_classes = [IsAuthor]
         else:
-            permission_classes == [IsAuthenticated]
+            permission_classes = [IsProjectContributor]
 
         return [permission() for permission in permission_classes]
     
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        # Récupère l'id du projet dans l'url
+        project_id = self.kwargs.get('project_pk')
+        data = request.data.copy()
+        data['project'] = project_id
+
         serializer = self.get_serializer(
-            instance, data=request.data, partial=partial)
+            instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer.data, status=status.HTTP_200_OK)
+        self.perform_update(serializer)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommentViewset(ModelViewSet):
@@ -128,7 +135,7 @@ class CommentViewset(ModelViewSet):
         elif self.action == "retrieve":
             permission_classes = [IsProjectContributor]
         elif self.action in ['update', 'partial_update', 'destroy']:
-            permission_classes == [IsAuthor]
+            permission_classes = [IsAuthor]
         return [permission() for permission in permission_classes]
 
     def update(self, request, *args, **kwargs):
@@ -156,11 +163,11 @@ class ContributorViewset(ModelViewSet):
 
 class UserProjectsAndIssuesView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectContributor]
 
     def get(self, request, *args, **kwargs):
         #récupere les projets ou l'utilisateur est contributeur
-        user_projects = Project.objects.filter(contributor__user=request.user).distinct()
+        user_projects = Project.objects.filter(contributors__user=request.user).distinct()
         project_serializer = project.serializers.ProjectListSerializer(user_projects, many = True)
 
         #Recupère les issues associés à ces projets
@@ -172,3 +179,15 @@ class UserProjectsAndIssuesView(APIView):
             "issues": issue_serializer.data
         })
 
+class UserAssignedIssuesView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Récupère les issues assignées à l'utilisateur
+        user_assigned_issues = Issue.objects.filter(assignee=request.user).distinct()
+        issue_serializer = project.serializers.IssueSerializer(user_assigned_issues, many=True)
+
+        return Response({
+            "assigned_issues": issue_serializer.data
+        })

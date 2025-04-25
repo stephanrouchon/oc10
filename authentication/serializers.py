@@ -1,6 +1,7 @@
 from rest_framework.serializers import ModelSerializer, ValidationError
 from django.utils.timezone import now
 from datetime import timedelta
+from django.contrib.auth.hashers import make_password
 
 from authentication.models import User, AGE_MIN
 
@@ -40,7 +41,11 @@ class UserCreationSerializer(ModelSerializer):
         
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+
+        password = validated_data.pop('password')
+        # on hash le mot de passe avant de le sauvegarder
+        validated_data['password'] = make_password(password)
+        return User.objects.create(**validated_data)
 
     def validate_birthdate(self, value):
         

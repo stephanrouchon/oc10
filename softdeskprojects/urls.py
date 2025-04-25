@@ -20,7 +20,7 @@ from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from authentication.views import UserViewset
-from project.views import ProjectViewset, ProjectIssueViewset,CommentViewset, ContributorViewset, UserProjectsAndIssuesView
+from project.views import ProjectViewset, ProjectIssueViewset,CommentViewset, ContributorViewset, UserAssignedIssuesView, UserProjectsAndIssuesView
 
 
 router = routers.SimpleRouter()
@@ -40,10 +40,13 @@ urlpatterns = [
          ProjectIssueViewset.as_view({'get': 'list', 'post':'create'}),
          name='project-issues'),
     path('api/project/<int:project_pk>/issues/<int:issue_pk>',
-         ProjectIssueViewset.as_view({'get':'retrieve'}),
+         ProjectIssueViewset.as_view({'get':'retrieve',
+                                      'put': 'update',
+                                      'delete':'destroy'}),
          name='project-issue-detail' ),
     path('api/project/<int:project_pk>/issues/<int:issue_pk>/comments/', 
          CommentViewset.as_view({'get': 'list', 'post':'create'}),
          name='project-issue-comments'),
-    path('api/user/project-issues/', UserProjectsAndIssuesView.as_view(), name='user-projects-issues')
+    path('api/user/<int:user_pk>/project-issues/', UserProjectsAndIssuesView.as_view(), name='user-projects-issues'),
+    path('api/user/<int:user_pk>/assigned-issues/', UserAssignedIssuesView.as_view(), name='user-assigned-issues'),
 ]  

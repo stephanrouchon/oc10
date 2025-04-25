@@ -10,6 +10,7 @@ flake8 = "*"
 djangorestframework = "*"
 drf-nested-routers = "*"
 django = "*"
+django-environ = "*"
 
 [dev-packages]
 
