@@ -57,14 +57,16 @@ class IssueSerializer(ModelSerializer):
                   'project_name',
                   'id',
                   'name',
-                  'priority',
                   'priority_display',
+                  'priority',
                   'balise',
                   'balise_display',
                   'status',
                   'status_display',
+                  'assignee',
                   'assignee_username',
                   ]
+        read_only_fields = ['project']
         
     def get_assignee_username(self, obj):
         return obj.assignee.username
