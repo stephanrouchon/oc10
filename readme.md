@@ -35,18 +35,6 @@ SoftDesk est une API de gestion de projets permettant aux utilisateurs de créer
 5. Lancez le serveur de développement
     python manage.py runserver
 
-
-## Configuration
-
-1. Créer un fichier .env à la racine du projet pour définir les variables d'environnement :
-
-    SECRET_KEY=django-insecure-votre-cle-secrete
-    DEBUG=True
-    ALLOWED_HOSTS=127.0.0.1,localhost
-
-2. Assurez-vous que le fichier .env est ignoré par Git en ajoutant cette ligne dans .gitignore :
-    .env
-
 ## Utilisation
 
 1. Création d'un utilisateur

@@ -101,7 +101,6 @@ class ProjectIssueViewset(ModelViewSet):
         project_id = self.kwargs.get('project_pk')
         data = request.data.copy()
         data['project'] = project_id
-
         serializer = self.get_serializer(
             instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
